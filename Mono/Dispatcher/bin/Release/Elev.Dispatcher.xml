@@ -59,7 +59,7 @@
         </member>
         <member name="P:Elev.Dispatcher.ClientHandler.UnservedOrders">
             <summary>
-            List of unserved orders
+            Copy of the list of unserved orders
             </summary>
         </member>
         <member name="P:Elev.Dispatcher.ClientHandler.Status">

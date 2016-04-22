@@ -205,7 +205,7 @@ namespace Elev.Formats
                         return;
                     }
                     catch (SerializationException e) { ex = e; }
-                    Console.WriteLine("OOPS! WTF?");
+                    Console.WriteLine("OOPS! WTF? Serialization");
                 }
             }
             Console.WriteLine("Failed to serialize object");
@@ -229,6 +229,7 @@ namespace Elev.Formats
                     }
                 }
                 catch (SerializationException e) { ex = e; }
+                Console.WriteLine("OOPS! WTF? Deserialization");
             }
             Console.WriteLine("Failed to deserialize: " + serializedObj);
             throw ex;
