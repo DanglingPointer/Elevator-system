@@ -135,6 +135,7 @@ namespace Elev.Dispatcher
             }
             catch(Exception e)
             {
+                Console.WriteLine("CONNECTION LOST");
                 Stop();
                 ConnectionLost(new LostConnectionEventArgs(m_orders), this);
                 Console.WriteLine(e.ToString());
