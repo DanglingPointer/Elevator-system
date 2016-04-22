@@ -161,6 +161,8 @@ namespace Elev.Connection
                     Console.WriteLine("Received: ToServe");
                     ToServeReceived(new DataReceivedEventArgs((Order)msg.Content));
                     return;
+                default:
+                    return;
             }
         }
 

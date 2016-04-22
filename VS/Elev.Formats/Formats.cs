@@ -96,7 +96,9 @@ namespace Elev.Formats
             /// <summary> Content is Order (floor that has been served) </summary>
             Served,
             /// <summary> Content is order </summary>
-            ToServe
+            ToServe,
+            /// <summary> Checks connection, content is null </summary>
+            Dummy
         }
         private Datagram(MsgType type, object content)
         {
@@ -147,6 +149,15 @@ namespace Elev.Formats
         {
             return new Datagram(MsgType.ToServe, order);
         }
+        /// <summary>
+        /// Sent from dispatcher to elevator to check the connection. Necessary
+        /// because Mono implementation of NetworkStream.Read() sucks
+        /// </summary>
+        /// <returns></returns>
+        public static Datagram CreateDummy()
+        {
+            return new Datagram(MsgType.Dummy, null);
+        }
     }
     /// <summary>
     /// Wrapper around NetworkStream that converts a specified datatype 
@@ -194,13 +205,15 @@ namespace Elev.Formats
                         return;
                     }
                     catch (SerializationException e) { ex = e; }
+                    Console.WriteLine("OOPS! WTF?");
                 }
             }
             Console.WriteLine("Failed to serialize object");
             throw ex;
         }
         /// <summary>
-        /// Extracts one object from the stream, blocks when no objects available
+        /// Extracts one object from the stream, blocks when no objects available or
+        /// throws IOException if ReadTimeOut is set
         /// </summary>
         public T ExtractFromStream()
         {

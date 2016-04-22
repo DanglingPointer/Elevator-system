@@ -37,7 +37,7 @@ namespace Elev
         {
             m_alive = true;
             Task.Run(() => m_client.Run());
-            m_retriever.Start();
+            Task.Run(() => m_retriever.Run());
             
             Thread.Sleep(1000); // wait for the client to initialize
             m_client.SendStatus(new State(Direction.Stop, m_mover.LastFloor)); // send initial status

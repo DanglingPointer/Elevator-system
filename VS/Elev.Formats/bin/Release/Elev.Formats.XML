@@ -61,6 +61,9 @@
         <member name="F:Elev.Formats.Datagram.MsgType.ToServe">
             <summary> Content is order </summary>
         </member>
+        <member name="F:Elev.Formats.Datagram.MsgType.Dummy">
+            <summary> Checks connection, content is null </summary>
+        </member>
         <member name="P:Elev.Formats.Datagram.Type">
             <summary>
             Type of the message to be sent
@@ -95,6 +98,13 @@
             </summary>
             <param name="order">Order to be served by an elevator</param>
         </member>
+        <member name="M:Elev.Formats.Datagram.CreateDummy">
+            <summary>
+            Sent from dispatcher to elevator to check the connection. Necessary
+            because Mono implementation of NetworkStream.Read() sucks
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Elev.Formats.NetSerializer`1">
             <summary>
             Wrapper around NetworkStream that converts a specified datatype 
@@ -121,7 +131,8 @@
         </member>
         <member name="M:Elev.Formats.NetSerializer`1.ExtractFromStream">
             <summary>
-            Extracts one object from the stream, blocks when no objects available
+            Extracts one object from the stream, blocks when no objects available or
+            throws IOException if ReadTimeOut is set
             </summary>
         </member>
         <member name="M:Elev.Formats.NetSerializer`1.ReadXmlObject">

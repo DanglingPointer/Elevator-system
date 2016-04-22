@@ -46,61 +46,58 @@ namespace Elev.Orders
         /// <summary>
         /// Starts checking buttons. Executes asynchronously
         /// </summary>
-        public void Start()
+        public void Run()
         {
             m_alive = true;
-            Task.Run(() =>
+            Console.WriteLine("Order retriever started");
+            while (m_alive)
             {
-                Console.WriteLine("Order retriever started");
-                while (m_alive)
+                bool stopState = m_panel.StopSignal;
+                if (stopState != m_prevStopState)
                 {
-                    bool stopState = m_panel.StopSignal;
-                    if (stopState != m_prevStopState)
+                    if (stopState == true)
                     {
-                        if (stopState == true)
-                        {
-                            var receivers = StopTriggered.GetInvocationList();
-                            foreach (Action receiver in receivers)
-                                receiver.BeginInvoke(null, null);
-                        }
-                        m_prevStopState = stopState;
+                        var receivers = StopTriggered.GetInvocationList();
+                        foreach (Action receiver in receivers)
+                            receiver.BeginInvoke(null, null);
                     }
+                    m_prevStopState = stopState;
+                }
 
-                    for (m_floor = 0; m_floor < Elevator.FloorCount; ++m_floor)
-                        for (m_button = 0; m_button < Elevator.ButtonCount; ++m_button)
+                for (m_floor = 0; m_floor < Elevator.FloorCount; ++m_floor)
+                    for (m_button = 0; m_button < Elevator.ButtonCount; ++m_button)
+                    {
+                        bool curState = m_panel.ButtonSignal[m_button, m_floor];
+                        if (curState != m_prevState[m_button, m_floor])
                         {
-                            bool curState = m_panel.ButtonSignal[m_button, m_floor];
-                            if (curState != m_prevState[m_button, m_floor])
+                            if (curState == true && m_panel.ButtonLamp[m_button, m_floor] == false)
                             {
-                                if (curState == true && m_panel.ButtonLamp[m_button, m_floor] == false)
+                                if (m_button == (int)Button.Command)
                                 {
-                                    if (m_button == (int)Button.Command)
+                                    var receivers = InternOrderReceived.GetInvocationList();
+                                    foreach(Action<InternOrderEventArgs> receiver in receivers)
                                     {
-                                        var receivers = InternOrderReceived.GetInvocationList();
-                                        foreach(Action<InternOrderEventArgs> receiver in receivers)
-                                        {
-                                            receiver.BeginInvoke(
-                                                new InternOrderEventArgs(m_floor), null, null
-                                                );
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var receivers = ExternOrderReceived.GetInvocationList();
-                                        foreach(Action<ExternOrderEventArgs> receiver in receivers)
-                                        {
-                                            receiver.BeginInvoke(new ExternOrderEventArgs(m_floor,
-                                                (m_button == (int)Button.Up) ? Direction.Up : Direction.Down),
-                                                null, null
-                                                );
-                                        }
+                                        receiver.BeginInvoke(
+                                            new InternOrderEventArgs(m_floor), null, null
+                                            );
                                     }
                                 }
-                                m_prevState[m_button, m_floor] = curState;
+                                else
+                                {
+                                    var receivers = ExternOrderReceived.GetInvocationList();
+                                    foreach(Action<ExternOrderEventArgs> receiver in receivers)
+                                    {
+                                        receiver.BeginInvoke(new ExternOrderEventArgs(m_floor,
+                                            (m_button == (int)Button.Up) ? Direction.Up : Direction.Down),
+                                            null, null
+                                            );
+                                    }
+                                }
                             }
+                            m_prevState[m_button, m_floor] = curState;
                         }
-                }
-            });
+                    }
+            }
         }
         /// <summary>
         /// Stops checking buttons

@@ -90,13 +90,15 @@ namespace Elev.Dispatcher
         /// </summary>
         public ClientHandler(Socket sock)
         {
+            var stream = new NetworkStream(sock);
+            stream.ReadTimeout = 1000;
             m_serlzr = new NetSerializer<Datagram>(new NetworkStream(sock), new object());
             m_alive = true;
             m_status = new State(Direction.Stop, -1);
             m_orders = new List<Order>();
         }
         /// <summary>
-        /// List of unserved orders
+        /// Copy of the list of unserved orders
         /// </summary>
         public Order[] UnservedOrders
         {
@@ -129,13 +131,17 @@ namespace Elev.Dispatcher
             {
                 while (m_alive)
                 {
-                    Datagram dgram = m_serlzr.ExtractFromStream();
-                    Task.Run(() => ProcessData(dgram));
+                    try
+                    {
+                        Datagram dgram = m_serlzr.ExtractFromStream();
+                        Task.Run(() => ProcessData(dgram));
+                    }
+                    catch (IOException) { } // read timeout
+                    m_serlzr.WriteToStream(Datagram.CreateDummy());
                 }
             }
             catch(Exception e)
             {
-                Console.WriteLine("CONNECTION LOST");
                 Stop();
                 ConnectionLost(new LostConnectionEventArgs(m_orders), this);
                 Console.WriteLine(e.ToString());
