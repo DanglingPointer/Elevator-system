@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Elev.Dispatcher</name>
+    </assembly>
+    <members>
+        <member name="T:Elev.Dispatcher.OrderDispatcher">
+            <summary>
+            This class includes an array of ClientHandlers according to the
+            number of elevators connected, and coordinates their activity, 
+            including assigning each order to the right elevator
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.OrderDispatcher.#ctor(System.Boolean)">
+            <summary>
+            Creates order dispatcher. Orders from log will be read in and served
+            if 'recoverng' is true
+            </summary>
+        </member>
+        <member name="P:Elev.Dispatcher.OrderDispatcher.ElevatorCount">
+            <summary>
+            Number of the elevators connected to the dispatcher
+            </summary>
+        </member>
+        <member name="P:Elev.Dispatcher.OrderDispatcher.LocalAddress">
+            <summary>
+            Local IP-address of the dispatcher
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.OrderDispatcher.Run">
+            <summary>
+            Listens on the local port 55555 for connections and creates new
+            ClientHandler's appropriately
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.OrderDispatcher.Stop">
+            <summary>
+            Stop listening for new connections
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.OrderDispatcher.DispatchOrder(Elev.Formats.Order)">
+            <summary>
+            Chooses the right elevator for the order. Throws NullReferenceException if
+            no elevators available, but never returns null
+            </summary>
+            <param name="ord"> Order to be dispatched </param>
+            <returns> The elevator that should receive this order </returns>
+        </member>
+        <member name="M:Elev.Dispatcher.StatusReceivedEventArgs.#ctor(Elev.Formats.State,System.Collections.Generic.List{Elev.Formats.Order})">
+            <summary/>
+            <param name="h"></param>
+            <param name="newStatus"></param>
+            <param name="orders">List of unserved orders to be copied</param>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.#ctor(System.Net.Sockets.Socket)">
+            <summary>
+            Creates a ClientHandler that will use the given socket
+            </summary>
+        </member>
+        <member name="P:Elev.Dispatcher.ClientHandler.UnservedOrders">
+            <summary>
+            List of unserved orders
+            </summary>
+        </member>
+        <member name="P:Elev.Dispatcher.ClientHandler.Status">
+            <summary>
+            The elevators last known status. 
+            Throws InvalidOperationException if not received yet or if EmergencyStop'ed
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.Run">
+            <summary>
+            Receives data from the elevator and processes it asynchronously
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.Stop">
+            <summary>
+            Closes the tcp-connection with the elevator
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.SendOrderAsync(Elev.Formats.Order)">
+            <summary>
+            Send a received order to the elevator, so that it will be
+            able to react appropriately (button lights etc)
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.SendServedAsync(Elev.Formats.Order)">
+            <summary>
+            Send a served order to the elevator, so that it will be
+            able to react appropriately (button lights etc)
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ClientHandler.SendToServeAsync(Elev.Formats.Order)">
+            <summary>
+            Send an order that should be served by this elevator
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.ProcessDiedEventArgs.#ctor(System.Boolean)">
+            <summary/>
+            <param name="primary">The dead process was primary</param>
+        </member>
+        <member name="P:Elev.Dispatcher.ProcessDiedEventArgs.IsPrimary">
+            <summary>
+            True if the process that has died, was primary
+            </summary>
+        </member>
+        <member name="T:Elev.Dispatcher.IProcessNotifier">
+            <summary>
+            Process pair notifier. Maintains a tcp connection with a pair process
+            on the same computer and notifies user when the connection is lost. 
+            </summary>
+        </member>
+        <member name="E:Elev.Dispatcher.IProcessNotifier.ProcessDied">
+            <summary>
+            Fired when connection with the pair process is lost
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.IProcessNotifier.Start">
+            <summary>
+            Connects with the second proccess, and monitors the connection.
+            Runs asynchronously. Stops and closes socket if the connection is lost
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.IProcessNotifier.Stop">
+            <summary>
+            Breaks connection with the pair process, nothrow
+            </summary>
+        </member>
+        <member name="T:Elev.Dispatcher.PrimaryProcessNotifier">
+            <summary>
+            Starts backup process and maintains connection with it. Fires
+            an event when the connection is lost or unable to connect
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.PrimaryProcessNotifier.Start">
+            <summary>
+            Starts backup-process. Stops when the connection fails.
+            Should be started again when PairDied is triggered
+            </summary>
+        </member>
+        <member name="T:Elev.Dispatcher.BackupProcessNotifier">
+            <summary>
+            Connects to the primary process which is assumed to be already running
+            Fires an event when the connection is lost (or if unable to connect)
+            </summary>
+        </member>
+        <member name="M:Elev.Dispatcher.BackupProcessNotifier.Start">
+            <summary>
+            Connects to primary. 
+            </summary>
+        </member>
+    </members>
+</doc>
