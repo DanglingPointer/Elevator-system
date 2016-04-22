@@ -61,7 +61,7 @@ namespace Elev.Connection
                     m_client = new TcpClient();
                     m_client.Connect(m_dispatcherAddr);
                     Running = true;
-                    m_serlzr = new DataSerializer(m_client.GetStream());
+                    m_serlzr = new NetSerializer<Datagram>(m_client.GetStream(), new object());
 
                     Console.WriteLine("Web client started");
 
@@ -165,8 +165,8 @@ namespace Elev.Connection
         }
 
         readonly IPEndPoint m_dispatcherAddr;
-        volatile DataSerializer m_serlzr;
+        NetSerializer<Datagram> m_serlzr;
         volatile List<Datagram> m_unsent;
-        TcpClient m_client;
+        volatile TcpClient m_client;
     }
 }

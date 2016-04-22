@@ -32,7 +32,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="Form1.cs" />
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Form1.Designer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Regulator.cs" />
@@ -40,11 +42,7 @@
   <ItemGroup>
     <Reference Include="Elev.Dispatcher, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\VS\Elev.Dispatcher\bin\Release\Elev.Dispatcher.dll</HintPath>
-    </Reference>
-    <Reference Include="Elev.Formats, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\VS\Elev.Dispatcher\bin\Release\Elev.Formats.dll</HintPath>
+      <HintPath>..\..\VS\Elev.Dispatcher\bin\Release\Elev.Dispatcher.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

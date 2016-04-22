@@ -4,6 +4,7 @@
 /// Both the dispatcher (master) and the elevator (slave) program use a copy 
 /// of this DLL file. 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -20,7 +21,7 @@ namespace Elev.Formats
         Up = 1
     }
     /// <summary>
-    /// Class representing an elevator's state
+    /// Struct representing an elevator's state
     /// </summary>
     [DataContract]
     public struct State
@@ -45,7 +46,7 @@ namespace Elev.Formats
         public readonly int lastFloor;
     }
     /// <summary>
-    /// Class containing information about an internal or external order
+    /// Struct containing information about an internal or external order
     /// </summary>
     [Serializable]
     [DataContract]
@@ -148,96 +149,73 @@ namespace Elev.Formats
         }
     }
     /// <summary>
-    /// Converts appropriate datatypes to messages to be sent via TCP,
-    /// and maintain a log file.
+    /// Wrapper around NetworkStream that converts a specified datatype 
+    /// to datagrams and sends via TCP. 
     /// </summary>
-    public class DataSerializer
+    /// <typeparam name="T"> Type to be serialized. Must be marked 
+    /// with DataContractAttribute </typeparam>
+    public class NetSerializer<T>
     {
         /// <summary>
-        /// Creates DataSerializer that will read/write log to a binary file
-        /// with a specified name
+        /// Creates NetSerializer that will read/write to the specified tcp stream
         /// </summary>
-        public DataSerializer(NetworkStream tcpstream, string logPath)
+        public NetSerializer(NetworkStream tcpstream, object mutex)
         {
-            m_logPath = logPath + ".bin";
-            m_bin = new BinaryFormatter();
-            m_bin.AssemblyFormat = FormatterAssemblyStyle.Simple;
-            m_mutex = new object();
+            m_mutex = mutex;
+            m_xml = new DataContractSerializer(typeof(T));
 
-            if (tcpstream != null)
-            {
-                m_tcpstream = tcpstream;
-                m_tcpreader = new StreamReader(tcpstream);
-                m_tcpwriter = new StreamWriter(tcpstream);
-                m_tcpwriter.AutoFlush = true;
-
-                m_memstream = new MemoryStream();
-                m_memreader = new StreamReader(m_memstream);
-                m_memwriter = new StreamWriter(m_memstream);
-                m_memwriter.AutoFlush = true;
-
-                m_xml = new DataContractSerializer(typeof(Datagram));
-            }
+            m_tcpstream = tcpstream;
+            m_tcpreader = new StreamReader(m_tcpstream);
+            m_tcpwriter = new StreamWriter(tcpstream);
+            m_tcpwriter.AutoFlush = true;
         }
         /// <summary>
-        /// Creates DataSerializer that will read/write log to a binary file
-        /// with the default name
+        /// The tcp stream we are writing to
         /// </summary>
-        public DataSerializer(NetworkStream stream) : this(stream, "elevator_log")
-        { }
         public NetworkStream TcpStream
         {
             get { return m_tcpstream; }
         }
         /// <summary>
-        /// Sends a message to the tcp stream
+        /// Sends an object to the tcp stream
         /// </summary>
-        /// <param name="obj"> Message to be sent </param>
-        public void WriteToStream(Datagram obj)
+        /// <param name="obj"> Object to be sent </param>
+        public void WriteToStream(T obj)
         {
             SerializationException ex = null;
-            string serializedObj = null;
             lock (m_mutex)
             {
-                for (int i = 0; i < 5; ++i) // 5 attempts to serialize an object
+                for (int i = 0; i < 5; ++i) // max 5 attempts to serialize an object
                 {
                     try
                     {
-                        m_memstream.SetLength(0);
-                        m_xml.WriteObject(m_memstream, obj);
-                        m_memwriter.Write('\0');
-                        m_memstream.Position = 0;
-
-                        serializedObj = m_memreader.ReadToEnd();
-                        m_tcpwriter.Write(serializedObj);
+                        m_xml.WriteObject(m_tcpstream, obj);
+                        m_tcpwriter.Write('\0');
                         return;
                     }
                     catch (SerializationException e) { ex = e; }
                 }
             }
-            Console.WriteLine("Failed to serialize: " + serializedObj);
+            Console.WriteLine("Failed to serialize object");
             throw ex;
         }
         /// <summary>
-        /// Extracts one message from the stream
+        /// Extracts one object from the stream, blocks when no objects available
         /// </summary>
-        public Datagram ExtractFromStream()
+        public T ExtractFromStream()
         {
             SerializationException ex = null;
             string serializedObj = ReadXmlObject();
-            lock (m_mutex)
+            for (int i = 0; i < 5; ++i) // max 5 attempts to deserialize
             {
-                for (int i = 0; i < 5; ++i) // 5 attempts to deserialize
+                try
                 {
-                    try
+                    using (var memstream = new MemoryStream(Encoding.UTF8.GetBytes(serializedObj)))
                     {
-                        m_memstream.SetLength(0);
-                        m_memwriter.Write(serializedObj);
-                        m_memstream.Position = 0;
-                        return m_xml.ReadObject(m_memstream) as Datagram;
+                        return (T)m_xml.ReadObject(memstream);
                     }
-                    catch (SerializationException e) { ex = e; }
                 }
+                catch (SerializationException e) { ex = e; }
             }
             Console.WriteLine("Failed to deserialize: " + serializedObj);
             throw ex;
@@ -255,8 +233,37 @@ namespace Elev.Formats
             }
             return temp;
         }
+        
+        object m_mutex;
+        DataContractSerializer m_xml;
+
+        NetworkStream   m_tcpstream;
+        StreamWriter    m_tcpwriter;
+        StreamReader    m_tcpreader;
+    }
+    /// <summary>
+    /// Maintains a binary log file
+    /// </summary>
+    public class LogWriter
+    {
         /// <summary>
-        /// Writes one or more Order to the log file
+        /// Creates a log writer that writes to a file with the given name
+        /// </summary>
+        /// <param name="fileName">File name without extension</param>
+        public LogWriter(string fileName)
+        {
+            m_logPath = fileName + ".bin";
+            m_bin = new BinaryFormatter();
+            m_bin.AssemblyFormat = FormatterAssemblyStyle.Simple;
+        }
+        /// <summary>
+        /// Creates a log writer that writes to a file with the default name
+        /// </summary>
+        public LogWriter() : this("elevator_log")
+        { }
+        /// <summary>
+        /// Appends one or more Order objects to the log file. Creates new log if 
+        /// the log file does not exist
         /// </summary>
         /// <param name="dataArr"> Data to be written into the log file </param>
         public void WriteToLog(params Order[] dataArr)
@@ -309,31 +316,21 @@ namespace Elev.Formats
         {
             try
             {
-                List<Order> alldata = new List<Order>();
                 using (FileStream file = File.Open(m_logPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
+                    List<Order> alldata = new List<Order>();
                     while (file.Position < file.Length)
                         alldata.Add((Order)m_bin.Deserialize(file));
+                    return alldata.ToArray();
                 }
-                return alldata.ToArray();
             }
             catch (FileNotFoundException)
             {
                 return new Order[0];
             }
         }
+
         BinaryFormatter m_bin;
         string m_logPath;
-        object m_mutex;
-
-        DataContractSerializer m_xml;
-
-        NetworkStream m_tcpstream;
-        StreamReader m_tcpreader;
-        StreamWriter m_tcpwriter;
-
-        MemoryStream m_memstream;
-        StreamReader m_memreader;
-        StreamWriter m_memwriter;
     }
 }

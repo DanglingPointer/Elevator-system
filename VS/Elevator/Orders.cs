@@ -135,7 +135,7 @@ namespace Elev.Orders
             m_internalOrders = new List<Order>();
             m_nextOrder = null;
             m_panel = Elevator.GetPanel();
-            m_serlzr = new DataSerializer(null, "elev_log");
+            m_serlzr = new LogWriter("elev_log");
 
             m_internalOrders.AddRange(m_serlzr.GetOrderData());
             foreach (Order ord in m_internalOrders)
@@ -226,7 +226,7 @@ namespace Elev.Orders
             m_panel.ButtonLamp[Button.Command, e.OrderInfo.destFloor] = true;
             m_internalOrders.Add(e.OrderInfo);
             UpdateNextOrder();
-            m_serlzr.RewriteLog(m_internalOrders.ToArray());
+            m_serlzr.WriteToLog(e.OrderInfo);
         }
         private void Retriever_ExternOrderReceived(ExternOrderEventArgs e)
         {
@@ -349,6 +349,6 @@ namespace Elev.Orders
         MotionController m_mover;
         WebClient m_client;
         IPanel m_panel;
-        DataSerializer m_serlzr;
+        LogWriter m_serlzr;
     }
 }

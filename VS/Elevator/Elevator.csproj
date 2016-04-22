@@ -35,7 +35,8 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Elev.Formats">
+    <Reference Include="Elev.Formats, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Elev.Formats\bin\Release\Elev.Formats.dll</HintPath>
     </Reference>
     <Reference Include="System" />

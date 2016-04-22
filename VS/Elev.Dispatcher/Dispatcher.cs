@@ -66,7 +66,7 @@ namespace Elev.Dispatcher
         /// </summary>
         public OrderDispatcher(bool recovering)
         {
-            m_serlzr = new DataSerializer(null);
+            m_serlzr = new LogWriter();
             m_server = null;
             m_elevators = new List<ClientHandler>();
             m_alive = false;
@@ -157,7 +157,6 @@ namespace Elev.Dispatcher
             }
             catch
             {
-                EventHappened("Dispatcher stopped involuntarily");
                 foreach (ClientHandler handler in m_elevators)
                 {
                     handler.Stop();
@@ -349,7 +348,7 @@ namespace Elev.Dispatcher
                     { } // ignore elevator if its state is not available
                 }
 
-                int maxDist = Math.Abs(farthest.Status.lastFloor - ord.destFloor);   // throws if nearest == null
+                int maxDist = Math.Abs(farthest.Status.lastFloor - ord.destFloor);   // throws if farthest == null
                 foreach (ClientHandler elev in chosenOnes)
                 {   // Nearest elevator to the destination
                     try
@@ -368,7 +367,7 @@ namespace Elev.Dispatcher
             }
         }
 
-        DataSerializer m_serlzr;
+        LogWriter m_serlzr;
         TcpListener m_server;
         volatile List<ClientHandler> m_elevators;
         volatile bool m_alive;

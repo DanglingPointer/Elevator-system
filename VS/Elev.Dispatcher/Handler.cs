@@ -90,7 +90,7 @@ namespace Elev.Dispatcher
         /// </summary>
         public ClientHandler(Socket sock)
         {
-            m_serlzr = new DataSerializer(new NetworkStream(sock));
+            m_serlzr = new NetSerializer<Datagram>(new NetworkStream(sock), new object());
             m_alive = true;
             m_status = new State(Direction.Stop, -1);
             m_orders = new List<Order>();
@@ -133,7 +133,6 @@ namespace Elev.Dispatcher
                     Task.Run(() => ProcessData(dgram));
                 }
             }
-            catch (ObjectDisposedException) { }
             catch(Exception e)
             {
                 Stop();
@@ -196,13 +195,9 @@ namespace Elev.Dispatcher
             {
                 m_serlzr.WriteToStream(data);
             }
-            catch (ObjectDisposedException)
-            {   //i.e. m_alive == false
-                throw new InvalidOperationException("Client is disposed");
-            }
             catch(Exception e)
             {
-                if (e is IOException || e is SocketException)
+                if (e is IOException || e is SocketException || e is ObjectDisposedException)
                 {
                     Stop();
                     ConnectionLost(new LostConnectionEventArgs(m_orders), this);
@@ -230,7 +225,7 @@ namespace Elev.Dispatcher
             }
         }
 
-        DataSerializer m_serlzr;
+        NetSerializer<Datagram> m_serlzr;
         volatile bool m_alive;
         State m_status;
         List<Order> m_orders;
