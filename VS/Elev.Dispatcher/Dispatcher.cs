@@ -105,22 +105,22 @@ namespace Elev.Dispatcher
             m_alive = true;
 
             m_server = new TcpListener(IPAddress.Any, 55555);
-            m_server.Server.ReceiveTimeout = 1000;
+            //m_server.Server.ReceiveTimeout = 1000;
             m_server.Start();
 
             EventHappened("Dispatcher started");
 
-            Task.Run(() =>
-            {
-                ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
-                while (m_alive)
-                {
-                    m_elevators.CopyTo(handlers);
-                    foreach (ClientHandler h in handlers)
-                        h.SendDummy();
-                    Thread.Sleep(1000);
-                }
-            });
+            //Task.Run(() =>
+            //{
+            //    ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
+            //    while (m_alive)
+            //    {
+            //        m_elevators.CopyTo(handlers);
+            //        foreach (ClientHandler h in handlers)
+            //            h.SendDummy();
+            //        Thread.Sleep(1000);
+            //    }
+            //});
             while (m_alive)
             {
                 try
