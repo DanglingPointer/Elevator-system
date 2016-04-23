@@ -133,7 +133,9 @@ namespace Elev.Dispatcher
                 {
                     try
                     {
-                        foreach (ClientHandler h in m_elevators)
+                        ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
+                        m_elevators.CopyTo(handlers);
+                        foreach (ClientHandler h in handlers)
                             h.SendDummy();
                         Thread.Sleep(1000);
                     }
