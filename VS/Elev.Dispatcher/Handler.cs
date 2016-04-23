@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Elev.Formats;
@@ -90,10 +91,8 @@ namespace Elev.Dispatcher
         /// </summary>
         public ClientHandler(Socket sock)
         {
-            sock.ReceiveTimeout = 1000;
             var stream = new NetworkStream(sock);
-            //stream.ReadTimeout = 1000;
-            m_serlzr = new NetSerializer<Datagram>(stream, new object());
+            m_serlzr = new NetSerializer<Datagram>(new NetworkStream(sock), new object());
             m_alive = true;
             m_status = new State(Direction.Stop, -1);
             m_orders = new List<Order>();
@@ -128,18 +127,14 @@ namespace Elev.Dispatcher
         /// </summary>
         public void Run()
         {
+            Task.Run(() => MonitorConnection());
             try
             {
                 while (m_alive)
                 {
-                    try
-                    {
-                        Datagram dgram = m_serlzr.ExtractFromStream();
-                        Task.Run(() => ProcessData(dgram));
-                    }
-                    catch (IOException) { Console.WriteLine("Read timeout"); }
-                    m_serlzr.WriteToStream(Datagram.CreateDummy());
-                    Console.WriteLine("Dummy sent");
+                    Datagram dgram = m_serlzr.ExtractFromStream();
+                    //Task.Run(() => ProcessData(dgram));
+                    ProcessData(dgram);
                 }
             }
             catch(Exception e)
@@ -198,14 +193,24 @@ namespace Elev.Dispatcher
                 SendData(Datagram.CreateToServe(toServe));
             });
         }
-        /// <summary>
-        /// Try to send a dummy to check connection
-        /// </summary>
-        public void SendDummy()
-        {
-            SendData(Datagram.CreateDummy());
-        }
 
+        private void MonitorConnection()
+        {
+            try
+            {
+                while (m_alive)
+                {
+                    m_serlzr.WriteToStream(Datagram.CreateDummy());
+                    Console.WriteLine("Dummy sent");
+                    Thread.Sleep(1000);
+                }
+            }
+            catch
+            {
+                Stop();
+                ConnectionLost(new LostConnectionEventArgs(m_orders), this);
+            }
+        }
         private void SendData(Datagram data)
         {
             try

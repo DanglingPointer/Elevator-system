@@ -95,11 +95,6 @@
             Send an order that should be served by this elevator
             </summary>
         </member>
-        <member name="M:Elev.Dispatcher.ClientHandler.SendDummy">
-            <summary>
-            Try to send a dummy to check connection
-            </summary>
-        </member>
         <member name="M:Elev.Dispatcher.ProcessDiedEventArgs.#ctor(System.Boolean)">
             <summary/>
             <param name="primary">The dead process was primary</param>

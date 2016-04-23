@@ -105,25 +105,13 @@ namespace Elev.Dispatcher
             m_alive = true;
 
             m_server = new TcpListener(IPAddress.Any, 55555);
-            //m_server.Server.ReceiveTimeout = 1000;
             m_server.Start();
 
             EventHappened("Dispatcher started");
-
-            //Task.Run(() =>
-            //{
-            //    ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
-            //    while (m_alive)
-            //    {
-            //        m_elevators.CopyTo(handlers);
-            //        foreach (ClientHandler h in handlers)
-            //            h.SendDummy();
-            //        Thread.Sleep(1000);
-            //    }
-            //});
-            while (m_alive)
+            
+            try
             {
-                try
+                while (m_alive)
                 {
                     Socket sock = m_server.AcceptSocket(); // blocks
 
@@ -147,17 +135,10 @@ namespace Elev.Dispatcher
                     EventHappened("Elevator connected");
                     ElevNumberChanged(m_elevators.Count);
                 }
-                catch (Exception e)
-                {   // Accept timeout (1000 ms)
-                    Console.WriteLine("Timeout exception: {0}", e.ToString());
-                    ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
-                    while (m_alive)
-                    {
-                        m_elevators.CopyTo(handlers);
-                        foreach (ClientHandler h in handlers)
-                            h.SendDummy();
-                    }
-                }
+            }
+            catch
+            {
+                Stop();
             }
         }
         /// <summary>
