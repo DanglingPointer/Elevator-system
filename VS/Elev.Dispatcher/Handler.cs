@@ -138,7 +138,7 @@ namespace Elev.Dispatcher
                     }
                     catch (IOException) { Console.WriteLine("Read timeout"); }
                     //m_serlzr.WriteToStream(Datagram.CreateDummy());
-                    SendData(Datagram.CreateDummy());
+                    SendOrderAsync(new Order(Direction.Down, 3));
                     Console.WriteLine("Dummy sent");
                 }
             }
