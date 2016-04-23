@@ -6,9 +6,9 @@ This system controls and coordinates actions of any number of elevators. Number 
 * Elevator uses Comedilib in order to interact with hardware. Since Comedilib only exists for Unix, the program is supposed to be run on Unix as well. If another type of hardware or library controlling it has to be used, only one file needs to be changed (`LibElev.cs`).
 * Dispatcher maintains a tcp-connection with every elevator and chooses which elevator will serve each order. It also continuously tracks the number of elevators and reassignes orders dynamically in case of elevator failure. As it does not interact with the hardware directly it can be run on any OS supporting .NET. Tests have been performed on Linux and Windows. 
 
-In order to start the dispatcher one have to type `mono Dispatcher.exe` in the terminal window. Once dispatcher is started, the elevators can be started by typing for example `mono Elevator.exe 129.241.187.158` where the first argument is the IPv4 address of the dispatcher. If both files are started on the same computer, no command line arguments need to be passed to elevator program. Note that the dispatcher always uses port 55555 in order to communicate with the elevators.
+In order to start the dispatcher the user has to type `mono Dispatcher.exe` in the terminal window. Once dispatcher is started, the elevators can be started by typing for example `mono Elevator.exe 129.241.187.158` where the last argument is the IPv4 address of the dispatcher. If both files are started on the same computer, no command line arguments need to be passed to the elevator program. Note that the dispatcher always uses a tcp connection through port 55555 in order to communicate with the elevators.
 
-Below are some UML diagrams describing the architecture. Notice that some changes were made in order to comply with requirements and system specifications, rendering some of the diagrams outdated.
+Below are some UML diagrams describing the architecture. Note that some changes were made in order to comply with requirements and system specifications, rendering some of the diagrams outdated.
 
 #### Elev.Formats.dll
 Common module used by both Elevator and Dispatcher. It defines common data types and methods of (de-)serialization. 
