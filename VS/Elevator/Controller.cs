@@ -21,8 +21,8 @@ namespace Elev
             m_alive = false;
 
             m_panel = Elevator.GetPanel();
-            if (cmdArgs.Length == 2)
-                m_client = new WebClient(cmdArgs[0], Convert.ToInt32(cmdArgs[1]));
+            if (cmdArgs.Length == 1)
+                m_client = new WebClient(cmdArgs[0], 55555);
             else
                 m_client = new WebClient("127.0.0.1", 55555);
             

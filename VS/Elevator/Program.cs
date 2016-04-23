@@ -8,8 +8,8 @@ namespace Elev
         {
             try
             {
-                if (args.Length != 2 && args.Length != 0)
-                    throw new ArgumentException("Invalid combination of command line arguments is passed");
+                if (args.Length != 1 && args.Length != 0)
+                    throw new ArgumentException("Invalid combination of command line arguments");
                 Controller c = new Controller(args);
                 c.Run();
             }
