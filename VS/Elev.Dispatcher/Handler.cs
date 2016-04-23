@@ -91,7 +91,7 @@ namespace Elev.Dispatcher
         public ClientHandler(Socket sock)
         {
             var stream = new NetworkStream(sock);
-            stream.ReadTimeout = 1000;
+            //stream.ReadTimeout = 1000;
             m_serlzr = new NetSerializer<Datagram>(stream, new object());
             m_alive = true;
             m_status = new State(Direction.Stop, -1);
@@ -131,15 +131,14 @@ namespace Elev.Dispatcher
             {
                 while (m_alive)
                 {
-                    try
-                    {
+                    //try
+                    //{
                         Datagram dgram = m_serlzr.ExtractFromStream();
                         Task.Run(() => ProcessData(dgram));
-                    }
-                    catch (IOException) { Console.WriteLine("Read timeout"); }
+                    //}
+                    //catch (IOException) { Console.WriteLine("Read timeout"); }
                     //m_serlzr.WriteToStream(Datagram.CreateDummy());
-                    SendOrderAsync(new Order(Direction.Down, 3));
-                    Console.WriteLine("Dummy sent");
+                    //Console.WriteLine("Dummy sent");
                 }
             }
             catch(Exception e)
@@ -197,6 +196,13 @@ namespace Elev.Dispatcher
                 m_orders.Add(toServe);
                 SendData(Datagram.CreateToServe(toServe));
             });
+        }
+        /// <summary>
+        /// Try to send a dummy to check connection
+        /// </summary>
+        public void SendDummy()
+        {
+            SendData(Datagram.CreateDummy());
         }
 
         private void SendData(Datagram data)

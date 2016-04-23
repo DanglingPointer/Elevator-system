@@ -127,6 +127,15 @@ namespace Elev.Dispatcher
 
             EventHappened("Dispatcher started");
 
+            Task.Run(() =>
+            {
+                while (m_alive)
+                {
+                    foreach (ClientHandler h in m_elevators)
+                        h.SendDummy();
+                    Thread.Sleep(1000);
+                }
+            });
             try
             {
                 while (m_alive)
