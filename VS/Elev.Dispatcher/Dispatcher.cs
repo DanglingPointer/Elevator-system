@@ -105,49 +105,25 @@ namespace Elev.Dispatcher
             m_alive = true;
 
             m_server = new TcpListener(IPAddress.Any, 55555);
+            m_server.Server.ReceiveTimeout = 1000;
             m_server.Start();
-
-            // If there is a local elevator we ensure that it is started when all other elevators have died
-            FileInfo elevExe = new FileInfo("Elevator.exe");
-            if (elevExe.Exists)
-            {
-                Task.Run(() =>
-                {   // Checking every 5 sec that at least one elevator is alive
-                    while (m_alive)
-                    {
-                        Thread.Sleep(5000);    // Checks every 5 sec
-                        if (m_elevators.Count == 0)
-                        {
-                            Process.Start("Elevator.exe");
-                            EventHappened("Local elevator started");
-                        }
-                    }
-                });
-            }
 
             EventHappened("Dispatcher started");
 
             Task.Run(() =>
             {
+                ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
                 while (m_alive)
                 {
-                    try
-                    {
-                        ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
-                        m_elevators.CopyTo(handlers);
-                        foreach (ClientHandler h in handlers)
-                            h.SendDummy();
-                        Thread.Sleep(1000);
-                    }
-                    catch(Exception e)
-                    {
-                        Console.WriteLine("Checking thread exception: {0}", e.Message);
-                    }
+                    m_elevators.CopyTo(handlers);
+                    foreach (ClientHandler h in handlers)
+                        h.SendDummy();
+                    Thread.Sleep(1000);
                 }
             });
-            try
+            while (m_alive)
             {
-                while (m_alive)
+                try
                 {
                     Socket sock = m_server.AcceptSocket(); // blocks
 
@@ -159,7 +135,7 @@ namespace Elev.Dispatcher
                     m_elevators.Add(handler);
                     Task.Run(() => handler.Run());
 
-                    if (m_logOrders != null) 
+                    if (m_logOrders != null)
                     {
                         Task.Run(() =>
                         {
@@ -168,18 +144,19 @@ namespace Elev.Dispatcher
                         });
                         m_logOrders = null;
                     }
-
                     EventHappened("Elevator connected");
                     ElevNumberChanged(m_elevators.Count);
                 }
-            }
-            catch
-            {
-                foreach (ClientHandler handler in m_elevators)
-                {
-                    handler.Stop();
+                catch (SocketException)
+                {   // Accept timeout (1000 ms)
+                    ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
+                    while (m_alive)
+                    {
+                        m_elevators.CopyTo(handlers);
+                        foreach (ClientHandler h in handlers)
+                            h.SendDummy();
+                    }
                 }
-                Stop();
             }
         }
         /// <summary>
@@ -191,6 +168,8 @@ namespace Elev.Dispatcher
             {
                 if (m_alive)
                     EventHappened("Dispatcher stopped");
+                foreach (ClientHandler handler in m_elevators)
+                    handler.Stop();
                 m_alive = false;
                 m_server.Stop();
             }
