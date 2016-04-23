@@ -193,23 +193,11 @@ namespace Elev.Formats
         /// <param name="obj"> Object to be sent </param>
         public void WriteToStream(T obj)
         {
-            SerializationException ex = null;
             lock (m_mutex)
             {
-                for (int i = 0; i < 5; ++i) // max 5 attempts to serialize an object
-                {
-                    try
-                    {
-                        m_xml.WriteObject(m_tcpstream, obj);
-                        m_tcpwriter.Write('\0');
-                        return;
-                    }
-                    catch (SerializationException e) { ex = e; }
-                    Console.WriteLine("OOPS! Serialization");
-                }
+                m_xml.WriteObject(m_tcpstream, obj);
+                m_tcpwriter.Write('\0');
             }
-            Console.WriteLine("Failed to serialize object");
-            throw ex;
         }
         /// <summary>
         /// Extracts one object from the stream, blocks when no objects available or
@@ -217,27 +205,16 @@ namespace Elev.Formats
         /// </summary>
         public T ExtractFromStream()
         {
-            SerializationException ex = null;
             string serializedObj = ReadXmlObject();
-            for (int i = 0; i < 5; ++i) // max 5 attempts to deserialize
+            using (var memstream = new MemoryStream(Encoding.UTF8.GetBytes(serializedObj)))
             {
-                try
-                {
-                    using (var memstream = new MemoryStream(Encoding.UTF8.GetBytes(serializedObj)))
-                    {
-                        return (T)m_xml.ReadObject(memstream);
-                    }
-                }
-                catch (SerializationException e) { ex = e; }
-                Console.WriteLine("OOPS! Deserialization");
+                return (T)m_xml.ReadObject(memstream);
             }
-            Console.WriteLine("Failed to deserialize: " + serializedObj);
-            throw ex;
         }
         /// <summary> 
         /// Extracts first xml-object from the tcp stream, blocks
         /// </summary>
-        private string ReadXmlObject()
+        protected string ReadXmlObject()
         {
             string temp = "";
             int symbol;

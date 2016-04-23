@@ -78,19 +78,19 @@
             Closes the tcp-connection with the elevator
             </summary>
         </member>
-        <member name="M:Elev.Dispatcher.ClientHandler.SendOrderAsync(Elev.Formats.Order)">
+        <member name="M:Elev.Dispatcher.ClientHandler.SendOrder(Elev.Formats.Order)">
             <summary>
             Send a received order to the elevator, so that it will be
             able to react appropriately (button lights etc)
             </summary>
         </member>
-        <member name="M:Elev.Dispatcher.ClientHandler.SendServedAsync(Elev.Formats.Order)">
+        <member name="M:Elev.Dispatcher.ClientHandler.SendServed(Elev.Formats.Order)">
             <summary>
             Send a served order to the elevator, so that it will be
             able to react appropriately (button lights etc)
             </summary>
         </member>
-        <member name="M:Elev.Dispatcher.ClientHandler.SendToServeAsync(Elev.Formats.Order)">
+        <member name="M:Elev.Dispatcher.ClientHandler.SendToServe(Elev.Formats.Order)">
             <summary>
             Send an order that should be served by this elevator
             </summary>

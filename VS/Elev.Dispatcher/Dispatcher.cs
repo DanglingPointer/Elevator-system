@@ -177,7 +177,7 @@ namespace Elev.Dispatcher
                 EventHappened("Served order received");
                 foreach (ClientHandler elev in m_elevators)
                 {
-                    elev.SendServedAsync(e.ServedOrder);
+                    elev.SendServed(e.ServedOrder);
                 }
                 EventHappened(string.Format("Floor {0} served, sent to all", e.ServedOrder.destFloor));
 
@@ -189,7 +189,7 @@ namespace Elev.Dispatcher
                 m_serlzr.RewriteLog(allUnserved.ToArray());
             }
         }
-        internal async void OnOrderReceived(OrderReceivedEventArgs e, ClientHandler h)
+        internal void OnOrderReceived(OrderReceivedEventArgs e, ClientHandler h)
         {
             if (m_alive)
             {
@@ -197,7 +197,7 @@ namespace Elev.Dispatcher
                 ClientHandler handler=null;
                 foreach (ClientHandler elev in m_elevators)
                 {
-                    elev.SendOrderAsync(e.OrderInfo);
+                    elev.SendOrder(e.OrderInfo);
                 }
                 m_serlzr.WriteToLog(e.OrderInfo);
                 while (m_alive)
@@ -205,7 +205,7 @@ namespace Elev.Dispatcher
                     try
                     {
                         handler = DispatchOrder(e.OrderInfo);
-                        await handler.SendToServeAsync(e.OrderInfo);
+                        handler.SendToServe(e.OrderInfo);
                         EventHappened("Order dispatched");
                         return;
                     }
@@ -219,19 +219,16 @@ namespace Elev.Dispatcher
         }
         internal void OnConnectionLost(LostConnectionEventArgs e, ClientHandler h)
         {
-            if (m_alive)
-            {
-                h.Stop();
-                bool found = m_elevators.Remove(h);
+            h.Stop();
+            bool found = m_elevators.Remove(h);
 
-                if (found)
-                {
-                    EventHappened("Elevator disconnected");
-                    ElevNumberChanged(ElevatorCount);
-                    OnStatusReceived(
-                        new StatusReceivedEventArgs(new State(Direction.Stop, -1), new List<Order>(e.UnservedOrders)), h
-                        );
-                }
+            if (found && m_alive)
+            {
+                EventHappened("Elevator disconnected");
+                ElevNumberChanged(ElevatorCount);
+                OnStatusReceived(
+                    new StatusReceivedEventArgs(new State(Direction.Stop, -1), new List<Order>(e.UnservedOrders)), h
+                    );
             }
         }
         /// <summary>

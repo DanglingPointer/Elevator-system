@@ -75,10 +75,10 @@ namespace Elev.Connection
                     while (true)
                     {
                         Datagram data = m_serlzr.ExtractFromStream();
-                        Task.Run(() => ProcessData(data));
+                        ProcessData(data);
                     }
                 }
-                catch (Exception)
+                catch
                 {
                     try { m_client.Close(); }
                     catch { }

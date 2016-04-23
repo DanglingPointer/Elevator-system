@@ -133,16 +133,15 @@ namespace Elev.Dispatcher
                 while (m_alive)
                 {
                     Datagram dgram = m_serlzr.ExtractFromStream();
-                    //Task.Run(() => ProcessData(dgram));
                     ProcessData(dgram);
                 }
             }
-            catch(Exception e)
+            catch (ObjectDisposedException) { }
+            catch (Exception e)
             {
-                Console.WriteLine("Exception caught!");
+                Console.WriteLine(e.ToString());
                 Stop();
                 ConnectionLost(new LostConnectionEventArgs(m_orders), this);
-                Console.WriteLine(e.ToString());
             }
         }
         /// <summary>
@@ -162,53 +161,35 @@ namespace Elev.Dispatcher
         /// Send a received order to the elevator, so that it will be
         /// able to react appropriately (button lights etc)
         /// </summary>
-        public async Task SendOrderAsync(Order order)
+        public void SendOrder(Order order)
         {
-            await Task.Run(() =>
-            {
-                SendData(Datagram.CreateOrder(order));
-            });
+            SendData(Datagram.CreateOrder(order));
         }
         /// <summary>
         /// Send a served order to the elevator, so that it will be
         /// able to react appropriately (button lights etc)
         /// </summary>
-        public async Task SendServedAsync(Order served)
+        public void SendServed(Order served)
         {
-            await Task.Run(() =>
-            {
-                while (m_orders.Remove(served))
-                    ;
-                SendData(Datagram.CreateServed(served));
-            });
+            while (m_orders.Remove(served))
+                ;
+            SendData(Datagram.CreateServed(served));
         }
         /// <summary>
         /// Send an order that should be served by this elevator
         /// </summary>
-        public async Task SendToServeAsync(Order toServe)
+        public void SendToServe(Order toServe)
         {
-            await Task.Run(() =>
-            {
-                m_orders.Add(toServe);
-                SendData(Datagram.CreateToServe(toServe));
-            });
+            m_orders.Add(toServe);
+            SendData(Datagram.CreateToServe(toServe));
         }
 
         private void MonitorConnection()
         {
-            try
+            while (m_alive)
             {
-                while (m_alive)
-                {
-                    m_serlzr.WriteToStream(Datagram.CreateDummy());
-                    Console.WriteLine("Dummy sent");
-                    Thread.Sleep(1000);
-                }
-            }
-            catch
-            {
-                Stop();
-                ConnectionLost(new LostConnectionEventArgs(m_orders), this);
+                SendData(Datagram.CreateDummy());
+                Thread.Sleep(1000);
             }
         }
         private void SendData(Datagram data)
