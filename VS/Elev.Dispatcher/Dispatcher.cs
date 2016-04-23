@@ -149,7 +149,7 @@ namespace Elev.Dispatcher
                 }
                 catch (Exception e)
                 {   // Accept timeout (1000 ms)
-                    Console.WriteLine("Timeout exception: {0}", e.Message);
+                    Console.WriteLine("Timeout exception: {0}", e.ToString());
                     ClientHandler[] handlers = new ClientHandler[m_elevators.Count];
                     while (m_alive)
                     {
