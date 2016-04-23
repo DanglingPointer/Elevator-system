@@ -137,7 +137,8 @@ namespace Elev.Dispatcher
                         Task.Run(() => ProcessData(dgram));
                     }
                     catch (IOException) { Console.WriteLine("Read timeout"); }
-                    m_serlzr.WriteToStream(Datagram.CreateDummy());
+                    //m_serlzr.WriteToStream(Datagram.CreateDummy());
+                    SendData(Datagram.CreateDummy());
                     Console.WriteLine("Dummy sent");
                 }
             }
