@@ -138,10 +138,12 @@ namespace Elev.Dispatcher
                     }
                     catch (IOException) { Console.WriteLine("Read timeout"); }
                     m_serlzr.WriteToStream(Datagram.CreateDummy());
+                    Console.WriteLine("Dummy sent");
                 }
             }
             catch(Exception e)
             {
+                Console.WriteLine("Exception caught!");
                 Stop();
                 ConnectionLost(new LostConnectionEventArgs(m_orders), this);
                 Console.WriteLine(e.ToString());
