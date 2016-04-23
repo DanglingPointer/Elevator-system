@@ -62,7 +62,7 @@ namespace Dispatcher
                     if (ip.AddressFamily == AddressFamily.InterNetwork)
                         localIp = ip.ToString();
 
-                Thread.Sleep(500);  // Wait to ensure that udp server is set up
+                Thread.Sleep(500);  // Wait to ensure that the dispatcher's server is set up
                 m_form.SetAddress(localIp, m_disp.LocalAddress.Port);
             }
         }
