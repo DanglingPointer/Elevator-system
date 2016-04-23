@@ -131,9 +131,16 @@ namespace Elev.Dispatcher
             {
                 while (m_alive)
                 {
-                    foreach (ClientHandler h in m_elevators)
-                        h.SendDummy();
-                    Thread.Sleep(1000);
+                    try
+                    {
+                        foreach (ClientHandler h in m_elevators)
+                            h.SendDummy();
+                        Thread.Sleep(1000);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine("Checking thread exception: {0}", e.Message);
+                    }
                 }
             });
             try
