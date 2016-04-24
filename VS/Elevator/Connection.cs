@@ -72,17 +72,32 @@ namespace Elev.Connection
 
                     m_unsent.Clear();
 
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(1000);
+                        while (Running)
+                        {
+                            Datagram data = m_serlzr.ExtractFromStream();
+                            ProcessData(data);
+                        }
+                    });
+
                     while (true)
                     {
-                        Datagram data = m_serlzr.ExtractFromStream();
-                        ProcessData(data);
+                        m_serlzr.WriteToStream(Datagram.CreateDummy());
+                        Thread.Sleep(1000);
                     }
                 }
                 catch
                 {
-                    try { m_client.Close(); }
-                    catch { }
-                    ConnectionLost();
+                    if (Running)
+                    {
+                        Running = false;
+                        try { m_client.Close(); }
+                        catch { }
+                        ConnectionLost();
+                        Console.WriteLine("Connection lost");
+                    }
                     Thread.Sleep(1000);
                 }
             }
@@ -92,34 +107,21 @@ namespace Elev.Connection
         /// </summary>
         public void SendOrder(Order order)
         {
-            if (Running)
-            {
-                SendData(Datagram.CreateOrder(order));
-            }
-            else
-                throw new InvalidOperationException("Client is not started");
+            SendData(Datagram.CreateOrder(order));
         }
         /// <summary>
         /// Sends status update to the dispatcher
         /// </summary>
         public void SendStatus(State status)
         {
-            if (Running)
-            {
-                SendData(Datagram.CreateStatus(status));
-            }
-            else
-                throw new InvalidOperationException("Client is not started");
+            SendData(Datagram.CreateStatus(status));
         }
         /// <summary>
         /// Sends to the dispatcher an order that has just been served
         /// </summary>
         public void SendServed(Order served)
         {
-            if (Running)
-            {
-                SendData(Datagram.CreateServed(served));
-            }
+            SendData(Datagram.CreateServed(served));
         }
 
         private void SendData(Datagram data)
@@ -128,18 +130,22 @@ namespace Elev.Connection
             {
                 m_unsent.Add(data);
                 m_serlzr.WriteToStream(data);
-                m_unsent.Remove(data);
+                while (m_unsent.Remove(data))
+                    ;
                 Console.WriteLine("Data is sent");
             }
             catch (NullReferenceException) { }
+            catch (ObjectDisposedException) { }
             catch (Exception e)
             {
-                if ((e is IOException || e is SocketException || e is ObjectDisposedException)
+                if ((e is IOException || e is SocketException)
                     && Running)
                 {
+                    Running = false;
                     try { m_client.Close(); }
                     catch { }
                     ConnectionLost();
+                    Console.WriteLine("Connection lost");
                 }
                 else
                     throw;

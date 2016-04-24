@@ -150,10 +150,9 @@ namespace Elev.Formats
             return new Datagram(MsgType.ToServe, order);
         }
         /// <summary>
-        /// Sent from dispatcher to elevator to check the connection. Necessary
-        /// because Mono implementation of NetworkStream.Read() sucks
+        /// Sent from both dispatcher and elevator to check the connection. Necessary
+        /// because Mono implementation of NetworkStream.Read() doesn't throw a shit
         /// </summary>
-        /// <returns></returns>
         public static Datagram CreateDummy()
         {
             return new Datagram(MsgType.Dummy, null);

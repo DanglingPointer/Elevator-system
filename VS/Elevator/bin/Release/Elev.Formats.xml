@@ -100,10 +100,9 @@
         </member>
         <member name="M:Elev.Formats.Datagram.CreateDummy">
             <summary>
-            Sent from dispatcher to elevator to check the connection. Necessary
-            because Mono implementation of NetworkStream.Read() sucks
+            Sent from both dispatcher and elevator to check the connection. Necessary
+            because Mono implementation of NetworkStream.Read() doesn't throw a shit
             </summary>
-            <returns></returns>
         </member>
         <member name="T:Elev.Formats.NetSerializer`1">
             <summary>

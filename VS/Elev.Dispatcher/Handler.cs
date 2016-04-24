@@ -225,6 +225,8 @@ namespace Elev.Dispatcher
                 case Datagram.MsgType.Served:
                     ServedReceived(new ServedReceivedEventArgs((Order)msg.Content), this);
                     return;
+                default:
+                    return;
             }
         }
 
